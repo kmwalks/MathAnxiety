@@ -1,0 +1,86 @@
+---
+title: "MathAnxiety"
+author: "Kristin Walker"
+date: "03/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("~/Desktop/UConn Manuscripts/MathAnxietyPaper")
+MA <- read.csv("MathAnxiety_210212_KW.csv", na.strings = "N/A")
+nrow(MA) #367 participants 
+
+MA_Agreed <- subset(MA, MA$Agree_Participate. == "Yes, I would like to participate.")
+nrow(MA_Agreed) #353 ageed to participate
+
+MA_Inc <- subset(MA, MA$Including_inStudy. == "Yes" & MA$Agree_Participate. == "Yes, I would like to participate.")
+nrow(MA_Inc) #313 participants including who reached the final question of the entire questionnaire and agreed to participate 
+
+MA_NotInc <- subset(MA, MA$Including_inStudy. == "No" & MA$Agree_Participate. == "Yes, I would like to participate.")
+nrow(MA_NotInc) #40 participants not including who did agree to participate but decided not to include them for various reasons (e.g., incomplete data, hearing status "mixmatch")
+
+sum(MA_NotInc$Finished. == "FALSE") #36 participants not including in study did not finish the questionnaire to various degrees (all of them not answer AMARS the math anxiety questionnaire)
+
+MA_NotInc_Finished <- subset(MA_NotInc, MA_NotInc$Finished. == "TRUE")
+nrow(MA_NotInc_Finished) #4 participants: 3 students at deaf school were hearing and one student did not provide hearing status
+```
+View(MA_Inc)
+View(MA_NotInc)
+View(MA_NotInc_Finished)
+
+```{r}
+#Recode Class Standing to have fewer categories
+MA_Inc$ClassStanding <- dplyr::recode(as.character(MA_Inc$ClassStanding), '1st year (Freshmen)' = "1st year", '2nd year (Sophomore)'="2nd year", '3rd year (Junior)'="3rd year", '4th year (Senior)' = "4th year", '4th year degree completed' = "Degree conferred", 'Other (please specify below)' = "Prefer not to answer/Other", 'Prefer not to answer' = "Prefer not to answer/Other", .missing="Missing")
+
+#Reorder Race
+MA_Inc$Race_3Cat <- factor(MA_Inc$Race_3Cat, levels=c("White", "Underrepresented", "Prefer not to answer/Other"))
+
+#Rename variables for table
+table1::label(MA_Inc$Age_years) <- "Age (years)"
+table1::label(MA_Inc$SES) <- "SES"
+table1::label(MA_Inc$Gender) <- "Gender"
+table1::label(MA_Inc$ClassStanding) <- "Grade"
+#NEED TO EDIT OTHER PLEASE SPECIFY BELOW... GROUP WITH PREFER NOT TO ANSWER
+table1::label(MA_Inc$Race_3Cat) <- "Race"
+
+table1::label(MA_Inc$Ethnicity) <- "Ethnicity"
+#GROUP PREFER NOT TO ANSWER AND OTHER!
+
+#Create the participant table
+table1::table1(~Age_years + SES + Gender + ClassStanding + Race_3Cat + Ethnicity | HearingStatus_2cat, data = MA_Inc, topclass="Rtable1-zebra Rtable1-times")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+#GAD vs AMARS Currently
+
+table(MA_Inc$HearingStatus_2cat)
+
+ggplot(data=MA_Inc, aes(x=GAD7_NumericalScore, y=AMARSummary_C, shape=HearingStatus_2cat, color=HearingStatus_2cat)) + geom_point() + geom_smooth(method=lm, se = FALSE) + labs(x="GAD", y="AMARS")
+
+#11 KIDS HAVE N/A FOR THEIR HEARING STATUS! ALL FROM UCONN!
+
+
+ggplot(data=MA_Inc, aes(x=HearingStatus_2cat, y=AMARSummary_C)) + geom_boxplot()
+
+#T TEST BETWEEN DEAF AND HEARING GAD AND AMARS... BUT NEEDS TO BE BINARY AND CURRENTLY HAVE N/A AS A THIRD CATEGORY!
+
+```
